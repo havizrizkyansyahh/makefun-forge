@@ -1,4 +1,6 @@
-# makefun-forge
+[![make.fun · github-core-clone-01](https://make.fun/badge/github-core-clone-01.svg)](https://make.fun/bounty/github-core-clone-01?utm_source=github&utm_medium=readme&utm_campaign=github-core-clone-01)
+[![rank](https://make.fun/badge/github-core-clone-01/havizrizkyansyahh/makefun-forge/rank.svg)](https://make.fun/bounty/github-core-clone-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=github-core-clone-01)
+[![reward](https://make.fun/badge/github-core-clone-01/havizrizkyansyahh/makefun-forge/reward.svg)](https://make.fun/bounty/github-core-clone-01?utm_source=github&utm_medium=readme&utm_campaign=github-core-clone-01)
 
 A GitHub-compatible forge in one Node 22 process, built for make.fun's
 `github-core-clone-01` bounty: git smart HTTP (v2 ls-refs/fetch with shallow
@@ -28,3 +30,5 @@ serves until the env says the trial is over.
 - `rest.ts`, `graphql.ts`, `mcp.ts` — the three API surfaces
 
 MIT licensed.
+
+Entered on [make.fun](https://make.fun/bounty/github-core-clone-01) — the bounty is "Build a GitHub-compatible git forge".
