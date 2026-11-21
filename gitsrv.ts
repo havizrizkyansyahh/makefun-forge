@@ -35,12 +35,8 @@ function readPktStream(buf: Buffer): (string | null)[] {
 }
 
 function readBody(req: IncomingMessage): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = []; let size = 0;
-    req.on('data', (c: Buffer) => { size += c.length; if (size > 300 * 1024 * 1024) reject(new Error('too large')); chunks.push(c); });
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
+  const carried = (req as unknown as { body?: Buffer }).body;
+  return Promise.resolve(carried ?? Buffer.alloc(0));
 }
 
 function refList(repo: S.Repo): [string, string][] {

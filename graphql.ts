@@ -163,7 +163,7 @@ function runOne(doc: string, vars: Record<string, unknown>): Gql {
     if (!repo) return { data: { repository: null } };
     const d = (repo as unknown as { id: number }).id;
     if (wants(doc, 'issues')) {
-      const first = Number(vars.first ?? 10);
+      const first = Number(vars.first ?? doc.match(/first:\s*(\d+)/)?.[1] ?? 10);
       const after = String(vars.after ?? '');
       const start = after ? Number(Buffer.from(after, 'base64').toString()) || 0 : 0;
       const list = [...repo.issues.values()].filter((i) => i.state === 'open').sort((a, b) => b.number - a.number);
@@ -172,7 +172,7 @@ function runOne(doc: string, vars: Record<string, unknown>): Gql {
       return { data: { repository: { issues: { nodes, pageInfo: { hasNextPage: end !== null, endCursor: end } } } } };
     }
     if (wants(doc, 'pullRequests')) {
-      const first = Number(vars.first ?? 5);
+      const first = Number(vars.first ?? doc.match(/first:\s*(\d+)/)?.[1] ?? 5);
       return { data: { repository: { pullRequests: { nodes: [...repo.pulls.values()].slice(0, first).map((p) => ({ number: p.number, headRefName: p.head, baseRefName: p.base, mergeable: 'MERGEABLE', state: p.merged ? 'MERGED' : 'OPEN' })) } } } };
     }
     if (wants(doc, 'pullRequest(')) {

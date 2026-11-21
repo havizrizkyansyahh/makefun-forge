@@ -1,5 +1,6 @@
 // The forge: one HTTP server over store, git smart HTTP, REST v3, GraphQL v4 and MCP.
-import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import type { IncomingMessage, Server, ServerResponse } from 'node:http';
+import { createTransport } from './transport.ts';
 
 import * as S from './store.ts';
 import * as Git from './gitsrv.ts';
@@ -10,33 +11,26 @@ import { handleMcp } from './mcp.ts';
 const TOKEN = process.env.MAKEFUN_SHOP_TOKEN ?? '';
 
 function readBody(req: IncomingMessage): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = []; let size = 0;
-    req.on('data', (c: Buffer) => { size += c.length; if (size > 300 * 1024 * 1024) reject(new Error('too large')); chunks.push(c); });
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
+  const carried = (req as unknown as { body?: Buffer }).body;
+  return Promise.resolve(carried ?? Buffer.alloc(0));
 }
 
 let idSeq = 0;
 const nextId = (): string => `req-${(++idSeq).toString(36)}-${(Date.now() % 100000).toString(36)}`;
 
 export function createApp(): Server {
-  const server = createServer((req, res) => {
-    serve(req, res).catch((e: Error) => {
+  return createTransport((req, res) => {
+    serve(req as unknown as IncomingMessage, res as unknown as ServerResponse).catch((e: Error) => {
       process.stderr.write(`serve error ${req.method} ${req.url}: ${e.stack ?? e.message}\n`);
       if (!res.headersSent) { res.writeHead(500, { 'content-type': 'application/json' }); res.end('{"message":"Internal Server Error"}'); } else res.end();
     });
-  });
-  server.on('connection', (socket) => socket.setNoDelay(true));
-  return server;
+  }) as unknown as Server;
 }
 
 async function serve(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const t0 = Date.now();
   if (process.env.TRACE) res.on('finish', () => { if (process.env.TRACE) process.stderr.write(`[${req.method} ${req.url} ${res.statusCode} ${Date.now() - t0}ms te=${req.headers['transfer-encoding'] ?? '-'} cl=${req.headers['content-length'] ?? '-'} expect=${req.headers.expect ?? '-'}]\n`); });
   if (process.env.TRACE) res.on('close', () => { if (!res.writableEnded) process.stderr.write(`[closed early ${req.method} ${req.url}]\n`); });
-  res.setHeader('x-github-request-id', nextId());
   let path = '/';
   let parsed: URL | null = null;
   try { parsed = new URL(req.url ?? '/', 'http://entry'); path = parsed.pathname; } catch { /* keep '/' */ }
